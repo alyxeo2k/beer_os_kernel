@@ -60,10 +60,7 @@ fn panic(info: &PanicInfo) -> ! {
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    serial_println!("[Failed]\n");
-    serial_println!("ErrorL {}\n", info);
-    exit_qemu(QemuExitCode::Failed);
-    loop {}
+    beer_os::test_panic_handler(info)
 }
 
 #[test_case]
@@ -89,7 +86,7 @@ pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
     println!("Test Math: {} {}", 22.22, 125/22);
     //panic!("This is a test panic message");
-
+    
     #[cfg(test)]
     test_main();
     print!("...");
