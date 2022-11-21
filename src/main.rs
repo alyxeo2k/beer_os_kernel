@@ -82,14 +82,20 @@ fn test_println_many() {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    //let mut write = vga_buffer::WRITER.lock();
     println!("Hello World{}", "!");
-    println!("Test Math: {} {}", 22.22, 125/22);
-    //panic!("This is a test panic message");
     
+    beer_os::init();
+
+    fn stack_overflow() {
+        stack_overflow();
+    }    
+
+    stack_overflow();
+
     #[cfg(test)]
     test_main();
-    print!("...");
+
+    println!("It did not crash!!!");
 
     loop {}
 }
