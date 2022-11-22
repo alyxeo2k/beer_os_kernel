@@ -45,7 +45,9 @@ fn test_runner(tests: &[&dyn Testable]) {
 }
 
 use core::panic::PanicInfo;
-//use core::fmt::Write;
+use bootloader::{BootInfo, entry_point};
+
+entry_point!(kernel_main);
 
 mod vga_buffer;
 mod serial;
@@ -54,7 +56,7 @@ mod serial;
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    beer_os::hlt_loop();
 }
 
 #[cfg(test)]
@@ -80,16 +82,31 @@ fn test_println_many() {
     }
 }
 
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use beer_os::{memory, memory::BootInfoFrameAllocator};
+    use x86_64::{VirtAddr, structures::paging::Page};
+
     println!("Hello World{}", "!");
-    
     beer_os::init();
+
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut frame_allocator = memory::EmptyFrameAllocator;
+
+    let page = Page::containing_address(VirtAddr::new(0xdeadbeef000));
+    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
+
+    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
+
+    let mut frame_allocator = unsafe {
+        BootInfoFrameAllocator::init(&boot_info.memory_map)
+    };
 
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!!!");
-
-    loop {}
+    beer_os::hlt_loop();
 }
