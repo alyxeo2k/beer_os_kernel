@@ -71,7 +71,7 @@ pub fn create_example_mapping(
 	let map_to_result = unsafe {
 		mapper.map_to(page, frame, flags, frame_allocator)
 	};
-	map_to_result.expect("!!! map_to failed !!!").flush();
+	//map_to_result.expect("!!! map_to failed !!!").flush();
 }
 
 /// Initialize a new OffsetPageTable.

@@ -2,6 +2,7 @@
 #![feature(abi_x86_interrupt)]
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
+#![feature(alloc_error_handler)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
@@ -10,6 +11,9 @@ pub mod vga_buffer;
 pub mod interrupts;
 pub mod gdt;
 pub mod memory;
+pub mod allocator;
+
+extern crate alloc;
 
 use core::panic::PanicInfo;
 #[cfg(test)]
@@ -69,6 +73,11 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 	serial_println!("Error: {}\n", info);
 	exit_qemu(QemuExitCode::Failed);
 	hlt_loop();
+}
+
+#[alloc_error_handler]
+fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+	panic!("!!! Allocation error: {:?} !!!", layout)
 }
 
 #[cfg(test)]

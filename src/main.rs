@@ -4,6 +4,9 @@
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
+use alloc::boxed::Box;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum QemuExitCode {
@@ -84,7 +87,8 @@ fn test_println_many() {
 
 
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    use beer_os::{memory, memory::BootInfoFrameAllocator};
+    use beer_os::allocator;
+    use beer_os::memory::{self, BootInfoFrameAllocator};
     use x86_64::{VirtAddr, structures::paging::Page};
 
     println!("Hello World{}", "!");
@@ -94,15 +98,20 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let mut mapper = unsafe { memory::init(phys_mem_offset) };
     let mut frame_allocator = memory::EmptyFrameAllocator;
 
-    let page = Page::containing_address(VirtAddr::new(0xdeadbeef000));
-    memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
+    //let page = Page::containing_address(VirtAddr::new(0xdeadbeef000));
+    //memory::create_example_mapping(page, &mut mapper, &mut frame_allocator);
 
-    let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
-    unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
+    //let page_ptr: *mut u64 = page.start_address().as_mut_ptr();
+    //unsafe { page_ptr.offset(400).write_volatile(0x_f021_f077_f065_f04e) };
 
-    let mut frame_allocator = unsafe {
-        BootInfoFrameAllocator::init(&boot_info.memory_map)
-    };
+    // let mut frame_allocator = unsafe {
+    //     BootInfoFrameAllocator::init(&boot_info.memory_map)
+    // };
+
+    allocator::init_heap(&mut mapper, &mut frame_allocator)
+        .expect("!!! Heap initialization failed !!!");
+
+    let x = Box::new(41);
 
     #[cfg(test)]
     test_main();
