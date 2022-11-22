@@ -48,5 +48,9 @@ pub fn init_heap(
         };
     }
 
+    unsafe {
+    	ALLOCATOR.lock().init(HEAP_START, HEAP_SIZE);
+    }
+
     Ok(())
 }
