@@ -12,6 +12,7 @@ use bump::BumpAllocator;
 pub struct Dummy;
 
 pub mod bump;
+pub mod linked_list;
 use bump::Locked;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
