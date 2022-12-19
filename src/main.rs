@@ -6,6 +6,7 @@
 
 extern crate alloc;
 use alloc::{boxed::Box, vec, vec::Vec, rc::Rc};
+use beer_os::task::{Task, simple_executor::SimpleExecutor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
@@ -101,7 +102,7 @@ fn test_println_many() {
 
     // let x = Box::new(41);
 
-    
+
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use beer_os::allocator;
     use beer_os::memory::{self, BootInfoFrameAllocator};
@@ -134,9 +135,22 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     core::mem::drop(reference_counted);
     println!("reference count is {} now", Rc::strong_count(&cloned_reference));
 
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.run();
+
     #[cfg(test)]
     test_main();
 
     println!("It did not crash!!!");
     beer_os::hlt_loop();
+}
+
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
 }
